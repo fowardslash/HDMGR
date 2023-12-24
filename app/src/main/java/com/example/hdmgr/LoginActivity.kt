@@ -75,8 +75,6 @@ fun LoginView(name: String, modifier: Modifier = Modifier, onLogin: (String, Str
             horizontalAlignment = Alignment.CenterHorizontally) {
             Text(text = "Chào mừng, vui lòng đăng nhập", fontSize = 20.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(10.dp))
-            OutlinedTextField(value = username, label = { Text(text = "Email")}, onValueChange = { it -> username = it})
-            Spacer(modifier = Modifier.height(10.dp))
             OutlinedTextField(value = password, label = { Text(text = "Mật khẩu")}, onValueChange = { it -> password = it}, visualTransformation = PasswordVisualTransformation())
             Spacer(modifier = Modifier.height(10.dp))
             Button(onClick = { onLogin(username, password) }) {

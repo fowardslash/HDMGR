@@ -2,9 +2,10 @@ package com.example.hdmgr.model
 
 import android.os.Parcel
 import android.os.Parcelable
+import androidx.versionedparcelable.VersionedParcelize
 import java.util.Date
-
-class Receipt {
+import kotlinx.parcelize.Parcelize
+class Receipt() {
     private var id: String = ""
     private var content: String = ""
     private var money: Int = 0
@@ -12,7 +13,7 @@ class Receipt {
     private var note: String = ""
     private var date: Date = Date()
 
-    constructor(id: String, content: String, money: Int, customer: String, note: String, date: Date) {
+    constructor(id: String, content: String, money: Int, customer: String, note: String, date: Date) : this() {
         this.id = id
         this.content = content
         this.money = money
@@ -20,30 +21,6 @@ class Receipt {
         this.note = note
         this.date = date
     }
-    constructor(id: String, content: String, money: Int, note: String) {
-        this.id = id
-        this.content = content
-        this.money = money
-        this.note = note
-    }
-
-    constructor()
-    constructor(id: String, content: String, money: Int, customer: String, note: String) {
-        this.id = id
-        this.content = content
-        this.money = money
-        this.customer = customer
-        this.note = note
-    }
-
-    constructor(id: String, content: String, money: Int, note: String, date: Date) {
-        this.id = id
-        this.content = content
-        this.money = money
-        this.note = note
-        this.date = date
-    }
-
     fun getId():String {
         return id
     }
@@ -65,25 +42,30 @@ class Receipt {
     fun setId(v: String){
         id = v
     }
-    fun setContent(v: String){
+    fun setContent(v: String): Receipt{
         content = v
+        return this
     }
-    fun setMoney(v: Int){
+    fun setMoney(v: Int): Receipt{
         money = v
+        return this
     }
-    fun setCustomer(v: String){
+    fun setCustomer(v: String): Receipt{
         customer = v
+        return this
     }
-    fun setNote(v: String){
+    fun setNote(v: String): Receipt{
         note = v
+        return this
     }
-    fun setDate(v : Date){
+    fun setDate(v : Date): Receipt{
         date = v
+        return this
     }
 
-
-
-
+    override fun toString(): String {
+        return "Receipt(id='$id', content='$content', money=$money, customer='$customer', note='$note', date=$date)"
+    }
 
 
 }
