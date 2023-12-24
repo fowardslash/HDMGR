@@ -1,7 +1,8 @@
 <resources>
-    <string name="app_name">HDMGR</string>
-    <string name="title_activity_login">LoginActivity</string>
+    <string name="app_name">Quản lý hoá đơn</string>
+    <string name="title_activity_login">HDMGR</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_settings">SettingsActivity</string>
+    <string name="version">⍺1.0.0</string>
 </resources>

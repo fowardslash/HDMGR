@@ -1,6 +1,8 @@
 package com.example.hdmgr
 
 import android.app.DatePickerDialog
+import android.content.Context
+import android.content.Intent
 import android.database.Cursor
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -48,11 +50,13 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.ExitToApp
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.DatePicker
@@ -113,13 +117,11 @@ import kotlin.random.Random
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val db: DB = DB(this)
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 return
             }
         })
-        val r: Receipt = Receipt()
         setContent {
             HDMGRTheme {
                 // A surface container using the 'background' color from the theme
@@ -162,7 +164,7 @@ fun MainView(name: String, modifier: Modifier = Modifier, onNavigateNext: () -> 
     fun getIndex(col: String, cur: Cursor): Int{
         return cur.getColumnIndex(col)
     }
-    val db: DB = DB(LocalContext.current)
+    val db = DB(LocalContext.current)
     val receiptC: Cursor = db.getReceipt()
     val filterText by remember { mutableStateOf("Tất cả")}
     val rList = remember { mutableStateListOf<Receipt>() }
@@ -172,7 +174,7 @@ fun MainView(name: String, modifier: Modifier = Modifier, onNavigateNext: () -> 
             val dateArr: List<String> = date.split("/")
             val calendar: Calendar = Calendar.getInstance()
             calendar.set(dateArr[0].toInt(), dateArr[1].toInt(), dateArr[2].toInt())
-            val rec = Receipt(receiptC.getString(getIndex("id", receiptC)), receiptC.getString(getIndex("id", receiptC)), receiptC.getInt(getIndex("price", receiptC)), receiptC.getString(getIndex("customer", receiptC)), receiptC.getString(getIndex("note", receiptC)), Date(calendar.timeInMillis))
+            val rec = Receipt(receiptC.getString(getIndex("id", receiptC)), receiptC.getString(getIndex("content", receiptC)), receiptC.getInt(getIndex("price", receiptC)), receiptC.getString(getIndex("customer", receiptC)), receiptC.getString(getIndex("note", receiptC)), Date(calendar.timeInMillis))
             rList.add(rec)
         }
     }
@@ -201,7 +203,6 @@ fun MainView(name: String, modifier: Modifier = Modifier, onNavigateNext: () -> 
                 db.addReceipt(r)
                 getReceipts()
                 isAdding = false
-
             }
         })
     }
@@ -224,6 +225,24 @@ fun MainView(name: String, modifier: Modifier = Modifier, onNavigateNext: () -> 
         mutableStateListOf<Boolean>().apply { addAll(listOf(false, false, false)) }
     }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val context: Context = LocalContext.current
+    fun moveToSettings(){
+        val i:Intent = Intent(context, SettingsActivity::class.java)
+        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(i)
+    }
+    var deleteId by remember {
+        mutableIntStateOf(-1)
+    }
+    var isDelete by remember {
+        mutableStateOf(false)
+    }
+    if(isDelete){
+        AlertDialog(onDismissRequest = { isDelete = false }, confirmButton = { /*TODO*/ }, icon = { Icon(
+            imageVector = Icons.Outlined.Info,
+            contentDescription = "Info"
+        )}, text = { Text(text = "Bạn có muốn xoá hoá đơn có mã là '$deleteId' này không?")})
+    }
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -254,8 +273,8 @@ fun MainView(name: String, modifier: Modifier = Modifier, onNavigateNext: () -> 
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = { /*TODO*/ }) {
-                        Icon(imageVector = Icons.Outlined.Settings, contentDescription = "Đăng xuất")
+                    IconButton(onClick = { moveToSettings() }) {
+                        Icon(imageVector = Icons.Outlined.Settings, contentDescription = "Cài đặt")
                     }
                 },
                 scrollBehavior = scrollBehavior
@@ -271,10 +290,21 @@ fun MainView(name: String, modifier: Modifier = Modifier, onNavigateNext: () -> 
         }
     ) {
         innerPadding -> if(!rList.isEmpty()){
-            Column(Modifier.padding(innerPadding).fillMaxHeight()) {
-                LazyColumn(Modifier.padding(20.dp, 0.dp).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(
+                Modifier
+                    .padding(innerPadding)
+                    .fillMaxHeight()) {
+                LazyColumn(
+                    Modifier
+                        .padding(20.dp, 0.dp)
+                        .fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     items(items = rList){
-                            it -> RecCard(it)
+                        RecCard(it, onDelete = {id ->
+                        run {
+                            isDelete = true
+                            deleteId = id.toInt()
+                        }
+                    })
                     }
                 }
 
@@ -295,7 +325,7 @@ fun MainView(name: String, modifier: Modifier = Modifier, onNavigateNext: () -> 
 }
 
 @Composable
-fun RecCard(item: Receipt = Receipt(), modifier: Modifier = Modifier.fillMaxWidth()){
+fun RecCard(item: Receipt = Receipt(), modifier: Modifier = Modifier.fillMaxWidth(), onDelete: (id: String) -> Unit){
     Card(modifier) {
         val formatter: DateFormat = DateFormat.getDateInstance();
         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
@@ -308,7 +338,7 @@ fun RecCard(item: Receipt = Receipt(), modifier: Modifier = Modifier.fillMaxWidt
                 }
             }
             Row {
-                IconButton(onClick = { /*TODO*/ }) {
+                IconButton(onClick = { onDelete(item.getId()) }) {
                     Icon(imageVector = Icons.Filled.Delete, contentDescription = "Xoá")
                 }
                 IconButton(onClick = { /*TODO*/ }) {
