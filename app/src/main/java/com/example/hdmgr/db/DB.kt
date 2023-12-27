@@ -14,15 +14,18 @@ import java.util.Date
 
 class DB(context: Context?) : SQLiteOpenHelper(context, "dbQLHD.db", null, 1) {
     lateinit var db: SQLiteDatabase
-    val CREATE_RECEIPT: String = "CREATE TABLE Receipt (" +
-            "id Integer PRIMARY KEY NOT NULL UNIQUE," +
-            "content Nvarchar(1000) NOT NULL," +
-            "price Bigint NOT NULL," +
-            "customer Nvarchar(1000) NOT NULL," +
-            "note Nvarchar(1000) NOT NULL," +
-            "date Date NOT NULL" +
-            ")"
-    val TABLE: String = "Receipt"
+    companion object{
+        const val CREATE_RECEIPT: String = "CREATE TABLE Receipt (" +
+                "id Integer PRIMARY KEY NOT NULL UNIQUE," +
+                "content Nvarchar(1000) NOT NULL," +
+                "price Bigint NOT NULL," +
+                "customer Nvarchar(1000) NOT NULL," +
+                "note Nvarchar(1000) NOT NULL," +
+                "date Date NOT NULL" +
+                ")"
+        const val TABLE: String = "Receipt"
+    }
+
     override fun onCreate(myDB: SQLiteDatabase) {
         Log.d("Db", "Db created")
         myDB.execSQL(CREATE_RECEIPT)
@@ -31,9 +34,9 @@ class DB(context: Context?) : SQLiteOpenHelper(context, "dbQLHD.db", null, 1) {
     override fun onUpgrade(p0: SQLiteDatabase?, p1: Int, p2: Int) {
         TODO("Not yet implemented")
     }
-    fun getReceipt(): Cursor{
+    fun getReceipt(sortingType: String = "date desc"): Cursor{
         db = readableDatabase
-        return db.query(TABLE, null, null, null, null, null, null)
+        return db.query(TABLE, null, null, null, null, null, sortingType)
     }
     fun addReceipt(r: Receipt){
         db = writableDatabase
@@ -46,5 +49,9 @@ class DB(context: Context?) : SQLiteOpenHelper(context, "dbQLHD.db", null, 1) {
         contentValues.put("note", r.getNote())
         contentValues.put("date", formatter.format(LocalDateTime.ofInstant(calendar.toInstant(), calendar.timeZone.toZoneId()).toLocalDate()))
         db.insert(TABLE, null, contentValues)
+    }
+    fun deleteReceipt(id: Int   ){
+        db = writableDatabase
+        db.delete(TABLE, "id = ?", arrayOf(id.toString()))
     }
 }

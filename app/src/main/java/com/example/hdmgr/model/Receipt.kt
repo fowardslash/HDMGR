@@ -5,14 +5,14 @@ import android.os.Parcelable
 import androidx.versionedparcelable.VersionedParcelize
 import java.util.Date
 import kotlinx.parcelize.Parcelize
-class Receipt() {
+open class Receipt() {
     private var id: String = ""
     private var content: String = ""
     private var money: Int = 0
     private var customer: String = ""
     private var note: String = ""
     private var date: Date = Date()
-
+    private val products: ArrayList<Products> = ArrayList()
     constructor(id: String, content: String, money: Int, customer: String, note: String, date: Date) : this() {
         this.id = id
         this.content = content
@@ -66,6 +66,16 @@ class Receipt() {
     override fun toString(): String {
         return "Receipt(id='$id', content='$content', money=$money, customer='$customer', note='$note', date=$date)"
     }
-
+    fun addProduct(p: Products){
+        products.add(p)
+        var sumPrice = 0
+        for(pr in products){
+            sumPrice += pr.getMoney()
+        }
+        money = sumPrice
+    }
+    fun getProducts(): ArrayList<Products>{
+        return products
+    }
 
 }

@@ -71,9 +71,9 @@ fun HDMGRTheme(
                 dynamicDarkColorScheme(context)
             }
         }
-
-        darkTheme -> DarkColorScheme
+        darkTheme || ThemeState.isLight == 2 -> DarkColorScheme
         else -> LightColorScheme
+
     }
     val view = LocalView.current
     if (!view.isInEditMode) {
