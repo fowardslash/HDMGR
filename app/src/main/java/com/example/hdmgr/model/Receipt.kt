@@ -5,13 +5,25 @@ import android.os.Parcelable
 import androidx.versionedparcelable.VersionedParcelize
 import java.util.Date
 import kotlinx.parcelize.Parcelize
+import java.time.DateTimeException
+
 open class Receipt() {
     private var id: String = ""
     private var content: String = ""
     private var money: Int = 0
+        set(value) {
+            if (value < 0) {
+                throw IllegalArgumentException("Negative money number")
+            } else {
+                field = value
+            }
+            field = value
+        }
     private var customer: String = ""
     private var note: String = ""
     private var date: Date = Date()
+    var dueDate: Date = Date()
+    var isFinished: Boolean = false
     private val products: ArrayList<Products> = ArrayList()
     constructor(id: String, content: String, money: Int, customer: String, note: String, date: Date) : this() {
         this.id = id

@@ -12,7 +12,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
 
-class DB(context: Context?) : SQLiteOpenHelper(context, "dbQLHD.db", null, 1) {
+class DB(context: Context?) : SQLiteOpenHelper(context, "dbQLHD.db", null, 2) {
     lateinit var db: SQLiteDatabase
     companion object{
         const val CREATE_RECEIPT: String = "CREATE TABLE Receipt (" +
@@ -21,9 +21,14 @@ class DB(context: Context?) : SQLiteOpenHelper(context, "dbQLHD.db", null, 1) {
                 "price Bigint NOT NULL," +
                 "customer Nvarchar(1000) NOT NULL," +
                 "note Nvarchar(1000) NOT NULL," +
-                "date Date NOT NULL" +
+                "date Date NOT NULL," +
+                "dueDate Date," +
+                "isFinished Tinyint NOT NULL DEFAULT 0" +
                 ")"
         const val TABLE: String = "Receipt"
+        const val UPDATE_CMD = "ALTER TABLE Receipt ADD dueDate Date"
+
+        const val UPDATE_CMD1 = "ALTER TABLE Receipt ADD COLUMN isFinished Tinyint NOT NULL DEFAULT 0"
     }
 
     override fun onCreate(myDB: SQLiteDatabase) {
@@ -32,7 +37,8 @@ class DB(context: Context?) : SQLiteOpenHelper(context, "dbQLHD.db", null, 1) {
     }
 
     override fun onUpgrade(p0: SQLiteDatabase?, p1: Int, p2: Int) {
-        TODO("Not yet implemented")
+        p0?.execSQL(UPDATE_CMD)
+        p0?.execSQL(UPDATE_CMD1)
     }
     fun getReceipt(sortingType: String = "date desc"): Cursor{
         db = readableDatabase

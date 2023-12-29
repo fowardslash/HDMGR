@@ -43,11 +43,15 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
@@ -119,9 +123,22 @@ class MainActivity : ComponentActivity() {
 
 
 }
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Statistical(modifier: Modifier = Modifier){
-    Text(text = "Hello statistical!")
+    Scaffold(
+        topBar = {
+            LargeTopAppBar(title = { Text(text = "Thống kê") },
+                colors = topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    scrolledContainerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.primary,
+                ),)
+        }
+    ) {
+        pd -> Text(text = "Hello statistical!")
+    }
+
 }
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -346,7 +363,7 @@ fun MainView(name: String, modifier: Modifier = Modifier) {
                         ElevatedButton(onClick = { /*TODO*/ }, Modifier.weight(1.0f)) {
                             Icon(imageVector = Icons.Outlined.Search, contentDescription = "Lọc")
                             Spacer(modifier = Modifier.width(5.dp))
-                            Text(text = curRec.getMoney().toString())
+                            Text(text = "Tìm kiếm")
                         }
                         Button(onClick = { isMenuVisible = true }) {
                             Icon(painter = painterResource(id = R.drawable.baseline_sort_24), contentDescription = "Lọc")
@@ -415,18 +432,22 @@ fun MainView(name: String, modifier: Modifier = Modifier) {
 
 @Composable
 fun RecCard(item: Receipt = Receipt(), modifier: Modifier = Modifier.fillMaxWidth(), onDelete: (id: String) -> Unit, onUpdate: (rec: Receipt) -> Unit){
-    Card(modifier) {
+    var isFinised by remember {
+        mutableStateOf(item.isFinished)
+    }
+    ElevatedCard(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)) {
         val formatter: DateFormat = DateFormat.getDateInstance();
         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
             Column(
                 Modifier
                     .padding(10.dp)
                     .weight(1.0f)) {
-                Text(text = item.getContent(), fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                Text(text = item.getNote())
-                Text(text = "#${item.getId()} • ${formatter.format(item.getDate())} • ${item.getCustomer()}")
+                Text(text = item.getContent(), fontWeight = FontWeight.Bold, fontSize = 20.sp, color = MaterialTheme.colorScheme.onBackground)
+                Text(text = item.getNote(), color = MaterialTheme.colorScheme.onBackground)
+                Text(text = "#${item.getId()} • ${formatter.format(item.getDate())}", color = MaterialTheme.colorScheme.onBackground)
+                Text(text = item.getCustomer())
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "${item.getMoney()} VND", fontSize = 20.sp)
+                    Text(text = "${item.getMoney()} VND", fontSize = 20.sp, color = MaterialTheme.colorScheme.onBackground)
                 }
             }
             Row() {
@@ -436,6 +457,7 @@ fun RecCard(item: Receipt = Receipt(), modifier: Modifier = Modifier.fillMaxWidt
                 IconButton(onClick = { onUpdate(item) }) {
                     Icon(imageVector = Icons.Filled.Edit, contentDescription = "Xoá")
                 }
+                Checkbox(checked = isFinised, onCheckedChange = { isFinised = !isFinised})
             }
         }
 
