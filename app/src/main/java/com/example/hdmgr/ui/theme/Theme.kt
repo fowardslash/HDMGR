@@ -56,13 +56,12 @@ fun HDMGRTheme(
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-
+    val context = LocalContext.current
+    val pref = UserPrefs(context)
+    val darkModeState by pref.getDarkModeState().collectAsState(initial = 0)
+    ThemeState.isLight = darkModeState
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            val pref = UserPrefs(context)
-            val darkModeState by pref.getDarkModeState().collectAsState(initial = 0)
-            ThemeState.isLight = darkModeState
             if(ThemeState.isLight == 0){
                 if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
             } else if(ThemeState.isLight == 1) {

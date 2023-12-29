@@ -25,6 +25,9 @@ open class Receipt() {
     var dueDate: Date = Date()
     var isFinished: Boolean = false
     private val products: ArrayList<Products> = ArrayList()
+    constructor(id: String) : this() {
+        this.id = id
+    }
     constructor(id: String, content: String, money: Int, customer: String, note: String, date: Date) : this() {
         this.id = id
         this.content = content

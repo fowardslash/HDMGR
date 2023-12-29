@@ -1,5 +1,6 @@
 package com.example.hdmgr
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.database.Cursor
@@ -18,6 +19,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -34,7 +37,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Info
@@ -97,6 +103,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.hdmgr.db.DB
 import com.example.hdmgr.model.Receipt
 import com.example.hdmgr.ui.theme.HDMGRTheme
+import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
 import java.text.DateFormat
 import java.util.Date
 
@@ -245,9 +252,14 @@ fun MainView(name: String, modifier: Modifier = Modifier) {
     if(isAdding){
         InputDialog(onDismiss = { isAdding = false }, onConfirm = { r ->
             run {
-                db.addReceipt(r)
-                getReceipts()
-                isAdding = false
+                if(r.getId() == "id"){
+                    db.addReceipt(r)
+                    getReceipts()
+                    isAdding = false
+                } else {
+                    /* TODO */
+                }
+
             }
         }, receipt = curRec)
     }
@@ -430,34 +442,63 @@ fun MainView(name: String, modifier: Modifier = Modifier) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
+@SuppressLint("RestrictedApi")
 @Composable
 fun RecCard(item: Receipt = Receipt(), modifier: Modifier = Modifier.fillMaxWidth(), onDelete: (id: String) -> Unit, onUpdate: (rec: Receipt) -> Unit){
     var isFinised by remember {
         mutableStateOf(item.isFinished)
     }
+    var isMenuOpened by remember {
+        mutableStateOf(false)
+    }
     ElevatedCard(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)) {
         val formatter: DateFormat = DateFormat.getDateInstance();
-        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-            Column(
-                Modifier
-                    .padding(10.dp)
-                    .weight(1.0f)) {
-                Text(text = item.getContent(), fontWeight = FontWeight.Bold, fontSize = 20.sp, color = MaterialTheme.colorScheme.onBackground)
-                Text(text = item.getNote(), color = MaterialTheme.colorScheme.onBackground)
-                Text(text = "#${item.getId()} • ${formatter.format(item.getDate())}", color = MaterialTheme.colorScheme.onBackground)
-                Text(text = item.getCustomer())
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "${item.getMoney()} VND", fontSize = 20.sp, color = MaterialTheme.colorScheme.onBackground)
+        Column(Modifier
+            .padding(10.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    Modifier
+                        .weight(1.0f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                    Text(text = "#${item.getId()}", color = MaterialTheme.colorScheme.onBackground)
+                    Text(text = item.getContent(), fontWeight = FontWeight.Bold, fontSize = 20.sp, color = MaterialTheme.colorScheme.onBackground)
+
+                }
+                Row() {
+                    Checkbox(checked = isFinised, onCheckedChange = { isFinised = !isFinised})
+                    IconButton(onClick = { isMenuOpened = true }) {
+                        Icon(imageVector = Icons.Filled.MoreVert, contentDescription = "Thêm")
+                        DropdownMenu(expanded = isMenuOpened, onDismissRequest = { isMenuOpened = false }) {
+                            DropdownMenuItem(text = { Text(text = "Sửa") }, onClick = { onUpdate(item); isMenuOpened = false })
+                            DropdownMenuItem(text = { Text(text = "Xóa") }, onClick = { onDelete(item.getId()); isMenuOpened= false })
+                        }
+                    }
+                }
+        }
+            ElevatedCard(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background), modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                    Icon(imageVector = Icons.Outlined.Info, contentDescription = "", tint = MaterialTheme.colorScheme.primary)
+                    Text(text = item.getNote())
                 }
             }
-            Row() {
-                IconButton(onClick = { onDelete(item.getId()) }) {
-                    Icon(imageVector = Icons.Filled.Delete, contentDescription = "Xoá")
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(5.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                ElevatedCard(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary)) {
+                    Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                        Icon(imageVector = Icons.Outlined.DateRange, contentDescription = "")
+                        Text(text = formatter.format(item.getDate()))
+                    }
                 }
-                IconButton(onClick = { onUpdate(item) }) {
-                    Icon(imageVector = Icons.Filled.Edit, contentDescription = "Xoá")
+                ElevatedCard(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary)) {
+                    Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                        Icon(imageVector = Icons.Outlined.AccountCircle, contentDescription = "")
+                        Text(text = item.getCustomer())
+                    }
                 }
-                Checkbox(checked = isFinised, onCheckedChange = { isFinised = !isFinised})
+            }
+
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = "${item.getMoney()} VND", fontSize = 20.sp, color = MaterialTheme.colorScheme.primary)
             }
         }
 
@@ -490,7 +531,7 @@ fun ChipArray(onFilter: (result: SnapshotStateList<Boolean>) -> Unit, modifier: 
 fun InputDialog(
     onDismiss: () -> Unit,
     onConfirm: (Receipt) -> Unit,
-    receipt: Receipt? = Receipt(),
+    receipt: Receipt? = Receipt("init"),
 ){
     var content by remember {
         mutableStateOf(receipt?.getContent() ?: "")
@@ -509,10 +550,7 @@ fun InputDialog(
     }
     fun confirmAdd(){
         val rec = Receipt("id", content, price, customer, note, Date())
-        if(receipt?.getId() == ""){
-            /* TODO */
-        } else
-            onConfirm(rec)
+        onConfirm(rec)
     }
     Dialog(onDismissRequest = {onDismiss()}) {
 
