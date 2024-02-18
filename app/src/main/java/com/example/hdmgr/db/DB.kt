@@ -60,4 +60,15 @@ class DB(context: Context?) : SQLiteOpenHelper(context, "dbQLHD.db", null, 2) {
         db = writableDatabase
         db.delete(TABLE, "id = ?", arrayOf(id.toString()))
     }
+    fun updateReceipt(r: Receipt){
+        val contentValues = ContentValues()
+        contentValues.put("content", r.getContent())
+        contentValues.put("price", r.getMoney())
+        contentValues.put("customer", r.getCustomer())
+        contentValues.put("note", r.getNote())
+        db.update(TABLE, contentValues, "id = ?", arrayOf(r.getId()))
+    }
+    fun getTotalMoney(date: String): Cursor{
+        return db.rawQuery("SELECT SUM(price) FROM $TABLE", null);
+    }
 }

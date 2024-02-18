@@ -1,6 +1,7 @@
 package com.example.hdmgr
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -76,6 +77,12 @@ class SettingsActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Settings(goBack: () -> Unit) {
+    val context = LocalContext.current
+    fun changeScreenInfo(){
+        val i = Intent(context, InfoActivity::class.java)
+        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(i)
+    }
     var isChangeApp by remember {
         mutableStateOf(false)
     }
@@ -130,7 +137,7 @@ fun Settings(goBack: () -> Unit) {
                 Divider()
                 Row(
                     Modifier
-                        .clickable { }
+                        .clickable { changeScreenInfo() }
                         .fillMaxWidth()
                         .padding(20.dp) ,verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Icon(imageVector = Icons.Outlined.Info, contentDescription = "Thông tin")

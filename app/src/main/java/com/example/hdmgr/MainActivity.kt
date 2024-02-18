@@ -105,6 +105,7 @@ import com.example.hdmgr.model.Receipt
 import com.example.hdmgr.ui.theme.HDMGRTheme
 import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
 import java.text.DateFormat
+import java.text.DecimalFormat
 import java.util.Date
 
 class MainActivity : ComponentActivity() {
@@ -133,9 +134,20 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Statistical(modifier: Modifier = Modifier){
+    val context = LocalContext.current
+    fun moveToSettings(){
+        val i = Intent(context, SettingsActivity::class.java)
+        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(i)
+    }
     Scaffold(
         topBar = {
-            LargeTopAppBar(title = { Text(text = "Thống kê") },
+            LargeTopAppBar(title = { Text(text = "Thống kê tháng này") },
+                navigationIcon = {
+                    IconButton(onClick = { moveToSettings() }) {
+                        Icon(imageVector = Icons.Outlined.Settings, contentDescription = "Cài đặt")
+                    }
+                },
                 colors = topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
                     scrolledContainerColor = MaterialTheme.colorScheme.background,
@@ -143,7 +155,12 @@ fun Statistical(modifier: Modifier = Modifier){
                 ),)
         }
     ) {
-        pd -> Text(text = "Hello statistical!")
+        pd -> Column(Modifier.padding(pd)) {
+            Column(Modifier.padding(16.dp)) {
+
+
+            }
+    }
     }
 
 }
@@ -199,12 +216,6 @@ fun AppView(modifier: Modifier = Modifier){
     }
 
 }
-@Composable
-fun SecondView(modifier: Modifier = Modifier){
-    Column {
-        Text(text = "Second View!!")
-    }
-}
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun MainView(name: String, modifier: Modifier = Modifier) {
@@ -249,15 +260,21 @@ fun MainView(name: String, modifier: Modifier = Modifier) {
     var isPickingDate by remember {
         mutableStateOf(false)
     }
+    fun updateRec(r: Receipt){
+        db.updateReceipt(r)
+        getReceipts()
+    }
     if(isAdding){
         InputDialog(onDismiss = { isAdding = false }, onConfirm = { r ->
             run {
-                if(r.getId() == "id"){
+                isAdding = if(r.getId() == ""){
                     db.addReceipt(r)
                     getReceipts()
-                    isAdding = false
+                    false
                 } else {
-                    /* TODO */
+                    db.updateReceipt(r)
+                    getReceipts()
+                    false
                 }
 
             }
@@ -284,7 +301,7 @@ fun MainView(name: String, modifier: Modifier = Modifier) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val context: Context = LocalContext.current
     fun moveToSettings(){
-        val i:Intent = Intent(context, SettingsActivity::class.java)
+        val i = Intent(context, SettingsActivity::class.java)
         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(i)
     }
@@ -304,7 +321,7 @@ fun MainView(name: String, modifier: Modifier = Modifier) {
         mutableStateOf(false)
     }
     if(isDelete){
-        AlertDialog(onDismissRequest = { isDelete = false }, confirmButton = { TextButton(onClick = { deleteRec() }) {
+        AlertDialog(onDismissRequest = { isDelete = false }, confirmButton = { TextButton(onClick = { deleteRec(); isDelete = false }) {
             Text(text = "Có")
         } }, icon = { Icon(
             imageVector = Icons.Outlined.Info,
@@ -315,7 +332,12 @@ fun MainView(name: String, modifier: Modifier = Modifier) {
             }
         })
     }
-
+    var totalMoney by remember {
+        mutableIntStateOf(0)
+    }
+    val totalMoneyCursor = db.getTotalMoney("")
+    totalMoneyCursor.moveToNext()
+    totalMoney = totalMoneyCursor.getInt(0)
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
@@ -411,7 +433,25 @@ fun MainView(name: String, modifier: Modifier = Modifier) {
                         .padding(20.dp, 0.dp)
                         .fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     item {
-
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            ElevatedCard {
+                                Column(
+                                    Modifier
+                                        .padding(20.dp)) {
+                                    Text(text = "Tổng tiền")
+                                    Text(text = "₫${DecimalFormat("#,###").format(totalMoney)}", fontSize = 25.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                            ElevatedCard(Modifier.weight(1f)) {
+                                Column(
+                                    Modifier
+                                        .padding(20.dp)) {
+                                    Text(text = "Số hoá đơn")
+                                    Text(text = rList.size.toString(), fontSize = 25.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
                     }
                     items(items = rList){
                         RecCard(it, onDelete = {id ->
@@ -498,7 +538,7 @@ fun RecCard(item: Receipt = Receipt(), modifier: Modifier = Modifier.fillMaxWidt
 
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "${item.getMoney()} VND", fontSize = 20.sp, color = MaterialTheme.colorScheme.primary)
+                Text(text = "${DecimalFormat("#,###").format(item.getMoney())} VND", fontSize = 20.sp, color = MaterialTheme.colorScheme.primary)
             }
         }
 
@@ -549,7 +589,7 @@ fun InputDialog(
         mutableStateListOf<String>()
     }
     fun confirmAdd(){
-        val rec = Receipt("id", content, price, customer, note, Date())
+        val rec = Receipt(if(receipt?.getId() == "init") "" else receipt?.getId() ?: "-1", content, price, customer, note, Date())
         onConfirm(rec)
     }
     Dialog(onDismissRequest = {onDismiss()}) {
@@ -594,6 +634,6 @@ fun InputDialog(
 @Composable
 fun GreetingPreview() {
     HDMGRTheme {
-        RecCard(onDelete = {}, onUpdate = {})
+        Statistical()
     }
 }

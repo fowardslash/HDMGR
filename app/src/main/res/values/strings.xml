@@ -4,6 +4,7 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_settings">SettingsActivity</string>
-    <string name="version">1.1.0_P20231227Aa</string>
+    <string name="version">1.2.1_R20240301A</string>
     <string name="title_activity_password_pref">PasswordPrefActivity</string>
+    <string name="title_activity_info">InfoActivity</string>
 </resources>
